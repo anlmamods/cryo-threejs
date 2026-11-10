@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { perfTier, perfTierWithWarn, sample, stats, resetSpikes, checkSpike, spikes } from "../src/core/perf.js";
+import { perfTier, perfTierWithWarn, sample, stats, resetSpikes, checkSpike, spikes, mark, systemMs } from "../src/core/perf.js";
 
 describe("perfTier", () => {
  it("thresholds", () => {
@@ -38,5 +38,26 @@ describe("spikes", () => {
   checkSpike(100);
   expect(spikes.count).toBe(1);
   expect(spikes.sinceReset).toBe(1);
+ });
+});
+
+describe("mark/systemMs", () => {
+ it("records per-system ms under each name", () => {
+  mark("test cpu alpha", 1.5);
+  mark("test cpu beta", 2.5);
+  expect(systemMs["test cpu alpha"]).toBe(1.5);
+  expect(systemMs["test cpu beta"]).toBe(2.5);
+  delete systemMs["test cpu alpha"];
+  delete systemMs["test cpu beta"];
+ });
+ it("re-marking a name overwrites (call once per frame per system); sums add across names", () => {
+  mark("test cpu total", 4);
+  mark("test cpu total", 6);
+  mark("test cpu other", 1);
+  expect(systemMs["test cpu total"]).toBe(6);
+  expect(systemMs["test cpu other"]).toBe(1);
+  expect(systemMs["test cpu total"] + systemMs["test cpu other"]).toBe(7);
+  delete systemMs["test cpu total"];
+  delete systemMs["test cpu other"];
  });
 });

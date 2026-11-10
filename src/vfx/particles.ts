@@ -425,6 +425,7 @@ export class SprayField {
   }
 
   this.liveCount = live;
+  this.mesh.visible = live > 0;
   this.dataTex.needsUpdate = true;
   this._pushUniforms();
  }
