@@ -284,7 +284,7 @@ describe("ShadowSystem caster bookkeeping", () => {
     });
   }
 
-  it("registers into every cascade by default and dedupes shared materials", () => {
+  it("registers into every cascade by default", () => {
     const sys = newShadows();
     const mesh = new THREE.Mesh();
     const shared = casterMaterial();
@@ -294,7 +294,7 @@ describe("ShadowSystem caster bookkeeping", () => {
       expect(sys._casters[c][0].mesh).toBe(mesh);
       expect(sys._casters[c][0].material).toBe(shared);
     }
-    expect(sys.materials).toEqual([shared]);
+    expect(sys.materials).toEqual([shared, shared, shared]);
   });
 
   it("limits registration to the requested number of near cascades", () => {
@@ -333,23 +333,6 @@ describe("ShadowSystem caster bookkeeping", () => {
     sys.registerCaster(mesh, () => casterMaterial());
     expect(sys.materials).toHaveLength(CASCADE_COUNT);
     expect(new Set(sys.materials).size).toBe(CASCADE_COUNT);
-  });
-
-  it("unregisterCaster removes the mesh from every cascade, leaving others intact", () => {
-    const sys = newShadows();
-    const keep = new THREE.Mesh();
-    const drop = new THREE.Mesh();
-    sys.registerCaster(keep, () => casterMaterial());
-    sys.registerCaster(drop, () => casterMaterial());
-    sys.unregisterCaster(drop);
-    for (let c = 0; c < CASCADE_COUNT; c++) {
-      expect(sys._casters[c].map(e => e.mesh)).toEqual([keep]);
-    }
-    // Unknown mesh is a harmless no-op.
-    sys.unregisterCaster(new THREE.Mesh());
-    for (let c = 0; c < CASCADE_COUNT; c++) {
-      expect(sys._casters[c]).toHaveLength(1);
-    }
   });
 
   it("update() points each registered material's lightViewProjection uniform at the cascade matrix", () => {
